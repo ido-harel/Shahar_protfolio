@@ -1,111 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shahar Aharonovich | Portfolio</title>
-    <meta name="description"
-        content="Portfolio of Shahar Aharonovich, a graphic designer, photographer, and editor based in Tel Aviv.">
-    <!-- Google Fonts: Inter -->
+    <title>Drama bombs | Designer Portfolio</title>
+    <meta name="description" content="Case study for Drama bombs project showcasing ux/ui design.">
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
-
-<body>
+<body class="cursor-drama-bombs">
 
     <!-- Header Navigation -->
     <header class="site-header reveal">
         <div class="container header-inner-4col">
             <a href="index.html" class="nav-item-strong">shahar aharonovich</a>
-            <a href="#work" class="nav-item">work</a>
+            <a href="index.html#work" class="nav-item">work</a>
             <a href="about.html" class="nav-item">about me</a>
-            <a href="#contact" class="nav-item">start a project</a>
+            <a href="index.html#contact" class="nav-item">start a project</a>
         </div>
     </header>
 
-    <!-- Hero Paragraph Section -->
-    <section class="hero-paragraph container reveal-seq">
-        <h1 class="giant-intro">
-            I'm Shahar Aharonovich,<br>a 🌈 Graphic designer, based in <br>Tel Aviv, Israel. Curious 🕹️ mind, Passion for
-            design. 3rd-Year Visual Communication 🫆 Student.
-        </h1>
-    </section>
-
-    <!-- Featured Projects Grid -->
-    <section id="work" class="work-section container reveal">
-        <div class="projects-grid-asym">
-
-            <!-- Project 1 (Wide Left) -->
-            <article class="project-card span-7 reveal">
-                <a href="Beyond.html" class="project-link">
-                    <div class="project-image-wrapper">
-                        <img src="assets/images/beyond/thumb1.png" alt="Project 1 Thumbnail" loading="lazy">
-                    </div>
-                    <div class="project-info">
-                        <h3 class="project-title">beyond</h3>
-                        <span class="project-category">ui\ux</span>
-                    </div>
-                </a>
-            </article>
-
-            <!-- Project 2 (Narrow Right) -->
-            <article class="project-card span-5 reveal">
-                <a href="Womens Voices.html" class="project-link">
-                    <div class="project-image-wrapper">
-                        <img src="assets/images/women&#39;s voices/thumb1.jpg" alt="Women's Voices Thumbnail"
-                            loading="lazy">
-                    </div>
-                    <div class="project-info">
-                        <h3 class="project-title">women's voices</h3>
-                        <span class="project-category">print</span>
-                    </div>
-                </a>
-            </article>
-
-            <!-- Project 3 (Narrow Left) -->
-            <article class="project-card span-5 reveal">
-                <a href="The Beatles.html" class="project-link">
-                    <div class="project-image-wrapper">
-                        <img src="assets/images/the beatles/thumb1.jpg" alt="Project 3 Thumbnail" loading="lazy">
-                    </div>
-                    <div class="project-info">
-                        <h3 class="project-title">the beatles</h3>
-                        <span class="project-category">catalog</span>
-                    </div>
-                </a>
-            </article>
-
-            <!-- Project 4 (Wide Right) -->
-            <article class="project-card span-7 reveal">
-                <a href="Drama Bombs.html" class="project-link">
-                    <div class="project-image-wrapper">
-                        <img src="assets/images/drama bombs/thumb1.png" alt="Project 4 Thumbnail" loading="lazy">
-                    </div>
-                    <div class="project-info">
-                        <h3 class="project-title">drama bombs</h3>
-                        <span class="project-category">ui\ux</span>
-                    </div>
-                </a>
-            </article>
-
-
-
+    <!-- Project Hero -->
+    <section class="project-hero container reveal-seq">
+        <div class="project-hero-header">
+            <h1 class="project-main-title">Drama bombs</h1>
+            <div class="project-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Year</span>
+                    <span class="meta-value">2024</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Role</span>
+                    <span class="meta-value">UI \ UX</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Tools</span>
+                    <span class="meta-value">Figma, Illustrator, Sora-AI</span>
+                </div>
+            </div>
+        </div>
+        <div class="project-hero-media">
+            <img src="assets/images/drama bombs/thumb1.png" alt="Drama bombs Hero image">
         </div>
     </section>
 
-    <!-- Get In Touch Section (Image 2) -->
-    <section id="contact" class="get-in-touch container reveal">
-        <div class="inline-callout">
-            <span class="text-giant">don't be shy <span style="font-size: 0.5em; position: absolute; left: 100%; bottom: 0.1em; margin-left: 1.5rem;">↘️</span></span>
+    <!-- Project Context -->
+    <section class="project-context container reveal">
+        <div class="context-single-col">
+            <span class="context-label">project overview</span>
+            <p class="context-giant-text">Drama is a wellness app that treats bath bombs like personalized mood prescriptions. You choose your current emotional state and the feeling you want to achieve. Drama bombs helps you transform stress into serenity and everyday baths into moments of emotional renewal.</p>
         </div>
     </section>
 
-    <!-- Site Footer (Image 6) -->
+    <!-- Project Gallery -->
+    <section class="project-gallery container">
+        <div class="gallery-img full-width reveal">
+            <img src="assets/images/drama bombs/n1.png" alt="Drama Bombs Process">
+        </div>
+        
+        <div class="gallery-img full-width reveal">
+            <img src="assets/images/drama bombs/n2.png" alt="Drama Bombs Overview">
+        </div>
+        
+        <div class="gallery-grid-triple">
+            <div class="gallery-img reveal">
+                <img src="assets/images/drama bombs/n3.png" alt="Drama Bombs Detail 1">
+            </div>
+            <div class="gallery-img reveal">
+                <img src="assets/images/drama bombs/n4.png" alt="Drama Bombs Detail 2">
+            </div>
+            <div class="gallery-img reveal">
+                <img src="assets/images/drama bombs/n5.png" alt="Drama Bombs Detail 3">
+            </div>
+        </div>
+    </section>
+    
+    <section class="prototype-link-wrapper container reveal">
+        <a href="https://www.figma.com/proto/EKDuQjc88nPzLtv0d59mTU?node-id=0-1&t=LuLV37nDOw6I9gqM-6" class="prototype-link" target="_blank" rel="noopener noreferrer">prototype link 👾</a>
+    </section>
+
+    <!-- Next Project / Back Home -->
+    <section class="project-footer container reveal">
+         <a href="index.html" class="back-link">
+             <span class="arrow">&larr;</span> Back to Home
+         </a>
+    </section>
+
+    <!-- Site Footer -->
     <footer class="site-footer container reveal">
         <div class="footer-grid">
             <div class="footer-info">
@@ -133,9 +118,9 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="giant-footer-name">shahar</div>
-
+        
         <div class="footer-copyright">
             <p>&copy; 2026 shahar aharonovich. all rights reserved</p>
             <p>Built using Antigravity</p>
@@ -145,5 +130,4 @@
     <!-- JavaScript -->
     <script src="script.js"></script>
 </body>
-
 </html>
