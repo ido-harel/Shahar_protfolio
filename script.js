@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
        Scroll Reveal Animations
     ------------------------------------------- */
     // Select all elements that need to be revealed
-    const revealElements = document.querySelectorAll('.reveal, .reveal-seq');
+    const revealElements = document.querySelectorAll('.reveal, .reveal-seq, .project-card-reveal');
 
     // Setup intersection observer options
     const observerOptions = {
@@ -88,5 +88,48 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    /* -------------------------------------------
+       Mobile Navigation Menu Toggle
+    ------------------------------------------- */
+    const menuToggle = document.querySelector('.menu-toggle');
+    const mobileNavOverlay = document.querySelector('.mobile-nav-overlay');
+    const mobileNavLinks = document.querySelectorAll('.mobile-nav-item');
+
+    if (menuToggle && mobileNavOverlay) {
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            mobileNavOverlay.classList.toggle('active');
+            document.body.classList.toggle('menu-open');
+        });
+
+        // Close menu when a link is clicked
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.classList.remove('active');
+                mobileNavOverlay.classList.remove('active');
+                document.body.classList.remove('menu-open');
+            });
+        });
+    }
+
+    /* -------------------------------------------
+       Live Local Time (Tel Aviv)
+    ------------------------------------------- */
+    const updateLocalTime = () => {
+        const clockElement = document.getElementById('live-clock');
+        if (clockElement) {
+            const options = {
+                timeZone: 'Asia/Jerusalem',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            };
+            const timeString = new Intl.DateTimeFormat('en-US', options).format(new Date());
+            clockElement.textContent = timeString.toLowerCase();
+        }
+    };
+    updateLocalTime();
+    setInterval(updateLocalTime, 1000); // Update every second to maintain exact time
 
 });
