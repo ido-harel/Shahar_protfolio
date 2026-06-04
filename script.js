@@ -5,20 +5,42 @@ document.addEventListener("DOMContentLoaded", () => {
        Header Scroll Effect
     ------------------------------------------- */
     const header = document.querySelector('.site-header');
+    let lastScrollY = window.scrollY;
+    const scrollDelta = 10;
     
-    const toggleHeaderBackground = () => {
-        if (window.scrollY > 50) {
+    const handleScroll = () => {
+        const currentScrollY = window.scrollY;
+        
+        // Toggle header scrolled styling
+        if (currentScrollY > 50) {
             header.classList.add('scrolled');
         } else {
             header.classList.remove('scrolled');
         }
+        
+        // Hide header on scroll down, show on scroll up
+        const isMenuOpen = document.body.classList.contains('menu-open');
+        
+        if (currentScrollY <= 150) {
+            header.classList.remove('header-hidden');
+            lastScrollY = currentScrollY;
+        } else if (Math.abs(currentScrollY - lastScrollY) > scrollDelta && !isMenuOpen) {
+            if (currentScrollY > lastScrollY) {
+                // Scrolling down
+                header.classList.add('header-hidden');
+            } else {
+                // Scrolling up
+                header.classList.remove('header-hidden');
+            }
+            lastScrollY = currentScrollY;
+        }
     };
     
     // Initial check
-    toggleHeaderBackground();
+    handleScroll();
     
     // Check on scroll
-    window.addEventListener('scroll', toggleHeaderBackground);
+    window.addEventListener('scroll', handleScroll);
 
     
     /* -------------------------------------------
@@ -132,4 +154,225 @@ document.addEventListener("DOMContentLoaded", () => {
     updateLocalTime();
     setInterval(updateLocalTime, 1000); // Update every second to maintain exact time
 
+    /* -------------------------------------------
+       Interactive Physics Sandbox Playground
+    ------------------------------------------- */
+    const sandbox = document.getElementById('physics-sandbox');
+    if (sandbox) {
+        // Items list
+        const itemDefs = [
+            { text: ':):', type: 'badge-item' },
+            { text: '🌊', type: 'circle-item' },
+            { text: '🎱', type: 'circle-item' },
+            { text: '📸', type: 'circle-item' },
+            { text: '👾', type: 'circle-item' },
+            { text: '⚡', type: 'circle-item' },
+            { text: 'drag me :)', type: 'tag-item' },
+            { text: 'Beyond 🍌', type: 'normal' },
+            { text: 'Drama 🛀🏼', type: 'normal' },
+            { text: 'Voices 🌸', type: 'normal' },
+            { text: 'Seaty 🌊', type: 'normal' }
+        ];
+
+        // Create DOM nodes and initialize physics states
+        const items = itemDefs.map((def) => {
+            const el = document.createElement('div');
+            el.className = `sandbox-item ${def.type}`;
+            el.textContent = def.text;
+            sandbox.appendChild(el);
+
+            const width = el.offsetWidth;
+            const height = el.offsetHeight;
+            
+            // Safe boundaries to prevent negative values on initialization
+            const maxX = Math.max(10, sandbox.clientWidth - width - 20);
+            const maxY = Math.max(10, sandbox.clientHeight - height - 20);
+            const x = Math.random() * maxX + 10;
+            const y = Math.random() * maxY + 10;
+            
+            return {
+                el,
+                x,
+                y,
+                vx: (Math.random() - 0.5) * 3,
+                vy: (Math.random() - 0.5) * 3,
+                width,
+                height,
+                isDragged: false,
+                lastX: x,
+                lastY: y,
+                dragPointerId: null
+            };
+        });
+
+        // Resize handler to update widths/heights and keep items in bounds
+        const updateSizes = () => {
+            items.forEach(item => {
+                item.width = item.el.offsetWidth;
+                item.height = item.el.offsetHeight;
+                
+                const maxX = sandbox.clientWidth - item.width;
+                const maxY = sandbox.clientHeight - item.height;
+                if (item.x > maxX) item.x = maxX;
+                if (item.y > maxY) item.y = maxY;
+                if (item.x < 0) item.x = 0;
+                if (item.y < 0) item.y = 0;
+            });
+        };
+        // Run once DOM settles
+        setTimeout(updateSizes, 100);
+        window.addEventListener('resize', updateSizes);
+
+        sandbox.addEventListener('pointerdown', (e) => {
+            const el = e.target.closest('.sandbox-item');
+            if (!el) return;
+            e.preventDefault();
+
+            const item = items.find(i => i.el === el);
+            if (!item) return;
+
+            item.isDragged = true;
+            item.dragPointerId = e.pointerId;
+            el.setPointerCapture(e.pointerId);
+
+            const rect = el.getBoundingClientRect();
+            item.offsetX = e.clientX - rect.left;
+            item.offsetY = e.clientY - rect.top;
+            
+            item.vx = 0;
+            item.vy = 0;
+            item.lastX = item.x;
+            item.lastY = item.y;
+        });
+
+        sandbox.addEventListener('pointermove', (e) => {
+            items.forEach(item => {
+                if (item.isDragged && item.dragPointerId === e.pointerId) {
+                    const sandboxRect = sandbox.getBoundingClientRect();
+                    const targetX = e.clientX - sandboxRect.left - item.offsetX;
+                    const targetY = e.clientY - sandboxRect.top - item.offsetY;
+
+                    item.x = Math.max(0, Math.min(sandbox.clientWidth - item.width, targetX));
+                    item.y = Math.max(0, Math.min(sandbox.clientHeight - item.height, targetY));
+
+                    item.vx = item.x - item.lastX;
+                    item.vy = item.y - item.lastY;
+                    item.lastX = item.x;
+                    item.lastY = item.y;
+                }
+            });
+        });
+
+        const endDrag = (e) => {
+            items.forEach(item => {
+                if (item.isDragged && item.dragPointerId === e.pointerId) {
+                    item.isDragged = false;
+                    item.dragPointerId = null;
+                    item.el.releasePointerCapture(e.pointerId);
+                }
+            });
+        };
+
+        sandbox.addEventListener('pointerup', endDrag);
+        sandbox.addEventListener('pointercancel', endDrag);
+
+        // Physics parameters
+        const bounce = 0.75;
+        const damping = 0.985;
+
+        // Main animation loop
+        const updatePhysics = () => {
+            const containerWidth = sandbox.clientWidth;
+            const containerHeight = sandbox.clientHeight;
+
+            items.forEach((item, idx) => {
+                if (!item.isDragged) {
+                    item.x += item.vx;
+                    item.y += item.vy;
+
+                    item.vx *= damping;
+                    item.vy *= damping;
+
+                    // Wall boundaries
+                    if (item.x <= 0) {
+                        item.x = 0;
+                        item.vx = -item.vx * bounce;
+                    } else if (item.x + item.width >= containerWidth) {
+                        item.x = containerWidth - item.width;
+                        item.vx = -item.vx * bounce;
+                    }
+
+                    if (item.y <= 0) {
+                        item.y = 0;
+                        item.vy = -item.vy * bounce;
+                    } else if (item.y + item.height >= containerHeight) {
+                        item.y = containerHeight - item.height;
+                        item.vy = -item.vy * bounce;
+                    }
+
+                    // Keep minor motion alive
+                    if (Math.abs(item.vx) < 0.05 && Math.abs(item.vy) < 0.05) {
+                        item.vx = (Math.random() - 0.5) * 0.5;
+                        item.vy = (Math.random() - 0.5) * 0.5;
+                    }
+                }
+
+                // Item to item collisions (circle overlap check)
+                for (let j = idx + 1; j < items.length; j++) {
+                    const other = items[j];
+                    
+                    const cx1 = item.x + item.width / 2;
+                    const cy1 = item.y + item.height / 2;
+                    const r1 = Math.max(item.width, item.height) / 2;
+
+                    const cx2 = other.x + other.width / 2;
+                    const cy2 = other.y + other.height / 2;
+                    const r2 = Math.max(other.width, other.height) / 2;
+
+                    const dx = cx2 - cx1;
+                    const dy = cy2 - cy1;
+                    const distance = Math.hypot(dx, dy);
+                    const minDist = r1 + r2;
+
+                    if (distance < minDist && distance > 0) {
+                        const overlap = minDist - distance;
+                        const nx = dx / distance;
+                        const ny = dy / distance;
+
+                        if (!item.isDragged) {
+                            item.x -= nx * overlap * 0.5;
+                            item.y -= ny * overlap * 0.5;
+                        }
+                        if (!other.isDragged) {
+                            other.x += nx * overlap * 0.5;
+                            other.y += ny * overlap * 0.5;
+                        }
+
+                        // Elastic collision velocity swap
+                        const kx = item.vx - other.vx;
+                        const ky = item.vy - other.vy;
+                        const p = 2 * (nx * kx + ny * ky) / 2;
+
+                        if (!item.isDragged) {
+                            item.vx -= p * nx * bounce;
+                            item.vy -= p * ny * bounce;
+                        }
+                        if (!other.isDragged) {
+                            other.vx += p * nx * bounce;
+                            other.vy += p * ny * bounce;
+                        }
+                    }
+                }
+
+                // Apply transform styling
+                item.el.style.transform = `translate3d(${item.x}px, ${item.y}px, 0)`;
+            });
+
+            requestAnimationFrame(updatePhysics);
+        };
+
+        requestAnimationFrame(updatePhysics);
+    }
+
 });
+
