@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
             { text: '📸', type: 'circle-item' },
             { text: '👾', type: 'circle-item' },
             { text: '⚡', type: 'circle-item' },
-            { text: 'drag here', type: 'tag-item', isTarget: true },
+            { text: 'drag here', type: 'tag-item drop-target', isTarget: true, isFixed: true },
             { text: 'Beyond 🍌', type: 'normal', url: 'project.html' },
             { text: 'Drama 🛀🏼', type: 'normal', url: 'project-drama-bombs.html' },
             { text: 'Voices 🌸', type: 'normal', url: 'project-womens-voices.html' },
@@ -187,15 +187,17 @@ document.addEventListener("DOMContentLoaded", () => {
             // Safe boundaries to prevent negative values on initialization
             const maxX = Math.max(10, sandbox.clientWidth - width - 20);
             const maxY = Math.max(10, sandbox.clientHeight - height - 20);
-            const x = Math.random() * maxX + 10;
-            const y = Math.random() * maxY + 10;
+            const fixedX = Math.max(10, sandbox.clientWidth - width - 24);
+            const fixedY = Math.max(10, (sandbox.clientHeight - height) / 2);
+            const x = def.isFixed ? fixedX : Math.random() * maxX + 10;
+            const y = def.isFixed ? fixedY : Math.random() * maxY + 10;
             
             return {
                 el,
                 x,
                 y,
-                vx: (Math.random() - 0.5) * 3,
-                vy: (Math.random() - 0.5) * 3,
+                vx: (Math.random() - 0.5) * (sandbox.clientWidth < 520 ? 1.2 : 3),
+                vy: (Math.random() - 0.5) * (sandbox.clientWidth < 520 ? 1.2 : 3),
                 width,
                 height,
                 isDragged: false,
@@ -203,7 +205,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastY: y,
                 dragPointerId: null,
                 isTarget: def.isTarget || false,
-                url: def.url || null
+                url: def.url || null,
+                isFixed: def.isFixed || false
             };
         });
 
@@ -215,6 +218,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 const maxX = sandbox.clientWidth - item.width;
                 const maxY = sandbox.clientHeight - item.height;
+                if (item.isFixed) {
+                    item.x = Math.max(0, maxX - 24);
+                    item.y = Math.max(0, maxY / 2);
+                    applyItemTransform(item);
+                    return;
+                }
                 if (item.x > maxX) item.x = maxX;
                 if (item.y > maxY) item.y = maxY;
                 if (item.x < 0) item.x = 0;
@@ -232,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const item = items.find(i => i.el === el);
             if (!item) return;
+            if (item.isFixed) return;
 
             item.isDragged = true;
             item.dragPointerId = e.pointerId;
@@ -246,6 +256,32 @@ document.addEventListener("DOMContentLoaded", () => {
             item.lastX = item.x;
             item.lastY = item.y;
         });
+
+        const itemsOverlap = (a, b) => (
+            a.x < b.x + b.width &&
+            a.x + a.width > b.x &&
+            a.y < b.y + b.height &&
+            a.y + a.height > b.y
+        );
+
+        const applyItemTransform = (item) => {
+            item.el.style.transform = `translate3d(${item.x}px, ${item.y}px, 0)`;
+        };
+
+        const getDroppedProjectUrl = (droppedItem, targetItem) => {
+            if (!targetItem) return null;
+
+            if (droppedItem.url && itemsOverlap(droppedItem, targetItem)) {
+                return droppedItem.url;
+            }
+
+            if (droppedItem.isTarget) {
+                const overlappingProject = items.find(other => other.url && itemsOverlap(targetItem, other));
+                return overlappingProject ? overlappingProject.url : null;
+            }
+
+            return null;
+        };
 
         sandbox.addEventListener('pointermove', (e) => {
             let activeDraggedItem = null;
@@ -264,6 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     item.lastY = item.y;
 
                     activeDraggedItem = item;
+                    applyItemTransform(item);
                 }
             });
 
@@ -274,16 +311,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 let isHovering = false;
                 if (anyDrag) {
                     if (anyDrag.isTarget) {
-                        isHovering = items.some(other => {
-                            if (!other.url) return false;
-                            const r1 = targetItem.el.getBoundingClientRect();
-                            const r2 = other.el.getBoundingClientRect();
-                            return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
-                        });
+                        isHovering = items.some(other => other.url && itemsOverlap(targetItem, other));
                     } else if (anyDrag.url) {
-                        const r1 = anyDrag.el.getBoundingClientRect();
-                        const r2 = targetItem.el.getBoundingClientRect();
-                        isHovering = !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+                        isHovering = itemsOverlap(anyDrag, targetItem);
                     }
                 }
                 if (isHovering) {
@@ -303,29 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     item.isDragged = false;
                     item.dragPointerId = null;
                     item.el.releasePointerCapture(e.pointerId);
-
-                    // Check for overlap navigation
-                    if (targetItem) {
-                        if (item.url) {
-                            const r1 = item.el.getBoundingClientRect();
-                            const r2 = targetItem.el.getBoundingClientRect();
-                            const overlap = !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
-                            if (overlap) {
-                                triggeredUrl = item.url;
-                            }
-                        } else if (item.isTarget) {
-                            items.forEach(other => {
-                                if (other.url) {
-                                    const r1 = targetItem.el.getBoundingClientRect();
-                                    const r2 = other.el.getBoundingClientRect();
-                                    const overlap = !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
-                                    if (overlap) {
-                                        triggeredUrl = other.url;
-                                    }
-                                }
-                            });
-                        }
-                    }
+                    triggeredUrl = getDroppedProjectUrl(item, targetItem);
                 }
             });
 
@@ -352,12 +360,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const updatePhysics = () => {
             const containerWidth = sandbox.clientWidth;
             const containerHeight = sandbox.clientHeight;
-            const isAnyOtherDragged = items.some(i => i.isDragged && !i.isTarget);
 
             items.forEach((item, idx) => {
-                const itemImmovable = item.isDragged || (item.isTarget && isAnyOtherDragged);
-
-                if (!itemImmovable) {
+                if (item.isFixed) {
+                    item.vx = 0;
+                    item.vy = 0;
+                } else if (!item.isDragged) {
                     item.x += item.vx;
                     item.y += item.vy;
 
@@ -383,18 +391,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Keep minor motion alive
                     if (Math.abs(item.vx) < 0.05 && Math.abs(item.vy) < 0.05) {
-                        item.vx = (Math.random() - 0.5) * 0.5;
-                        item.vy = (Math.random() - 0.5) * 0.5;
+                        const drift = containerWidth < 520 ? 0.22 : 0.5;
+                        item.vx = (Math.random() - 0.5) * drift;
+                        item.vy = (Math.random() - 0.5) * drift;
                     }
-                } else if (item.isTarget && isAnyOtherDragged) {
-                    // Lock velocity to 0 while frozen
-                    item.vx = 0;
-                    item.vy = 0;
                 }
 
                 // Item to item collisions (circle overlap check)
                 for (let j = idx + 1; j < items.length; j++) {
                     const other = items[j];
+                    if (item.isFixed || other.isFixed) continue;
                     
                     const cx1 = item.x + item.width / 2;
                     const cy1 = item.y + item.height / 2;
@@ -414,14 +420,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         const nx = dx / distance;
                         const ny = dy / distance;
 
-                        const itemImmovable = item.isDragged || (item.isTarget && isAnyOtherDragged);
-                        const otherImmovable = other.isDragged || (other.isTarget && isAnyOtherDragged);
-
-                        if (!itemImmovable) {
+                        if (!item.isDragged) {
                             item.x -= nx * overlap * 0.5;
                             item.y -= ny * overlap * 0.5;
                         }
-                        if (!otherImmovable) {
+                        if (!other.isDragged) {
                             other.x += nx * overlap * 0.5;
                             other.y += ny * overlap * 0.5;
                         }
@@ -431,11 +434,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         const ky = item.vy - other.vy;
                         const p = 2 * (nx * kx + ny * ky) / 2;
 
-                        if (!itemImmovable) {
+                        if (!item.isDragged) {
                             item.vx -= p * nx * bounce;
                             item.vy -= p * ny * bounce;
                         }
-                        if (!otherImmovable) {
+                        if (!other.isDragged) {
                             other.vx += p * nx * bounce;
                             other.vy += p * ny * bounce;
                         }
@@ -443,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 // Apply transform styling
-                item.el.style.transform = `translate3d(${item.x}px, ${item.y}px, 0)`;
+                applyItemTransform(item);
             });
 
             requestAnimationFrame(updatePhysics);
@@ -453,4 +456,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
-
