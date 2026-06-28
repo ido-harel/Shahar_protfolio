@@ -385,7 +385,7 @@ body.menu-open {
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     user-select: none;
     -webkit-user-select: none;
-    transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+    transition: box-shadow var(--transition-fast), border-color var(--transition-fast), scale var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
 }
 .sandbox-item:active {
     cursor: grabbing;
@@ -410,10 +410,29 @@ body.menu-open {
 }
 .sandbox-item.tag-item {
     border-style: dashed;
-    font-weight: 400;
-    font-size: 0.75rem;
-    padding: 0.4rem 0.8rem;
-    opacity: 0.8;
+    font-weight: 500;
+    font-size: 0.8rem;
+    padding: 0.45rem 0.95rem;
+    opacity: 0.9;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-color: var(--text-color);
+    transition: scale var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.sandbox-item.tag-item.drag-hover {
+    scale: 1.15;
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    border-style: solid;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+.sandbox-item.tag-item.drag-success {
+    scale: 1.25;
+    background-color: #22c55e;
+    color: #ffffff;
+    border-color: #22c55e;
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.5);
+    z-index: 10;
 }
 
 .disciplines-col {
@@ -959,5 +978,21 @@ body.menu-open {
     .gallery-img.large-centered { width: 100%; }
     .seaty-gallery .gallery-img img { aspect-ratio: 16 / 11; }
     .seaty-gallery .gallery-grid-triple .gallery-img img { aspect-ratio: 16 / 11; }
-    .physics-sandbox { height: 150px; }
+    .physics-sandbox { height: 240px; }
+    .sandbox-item {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.75rem;
+    }
+    .sandbox-item.circle-item {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+    }
+    .sandbox-item.badge-item {
+        font-size: 0.8rem;
+    }
+    .sandbox-item.tag-item {
+        font-size: 0.65rem;
+        padding: 0.3rem 0.6rem;
+    }
 }

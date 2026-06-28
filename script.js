@@ -167,11 +167,11 @@ document.addEventListener("DOMContentLoaded", () => {
             { text: '📸', type: 'circle-item' },
             { text: '👾', type: 'circle-item' },
             { text: '⚡', type: 'circle-item' },
-            { text: 'drag me :)', type: 'tag-item' },
-            { text: 'Beyond 🍌', type: 'normal' },
-            { text: 'Drama 🛀🏼', type: 'normal' },
-            { text: 'Voices 🌸', type: 'normal' },
-            { text: 'Seaty 🌊', type: 'normal' }
+            { text: 'drag here', type: 'tag-item', isTarget: true },
+            { text: 'Beyond 🍌', type: 'normal', url: 'project.html' },
+            { text: 'Drama 🛀🏼', type: 'normal', url: 'project-drama-bombs.html' },
+            { text: 'Voices 🌸', type: 'normal', url: 'project-womens-voices.html' },
+            { text: 'Seaty 🌊', type: 'normal', url: 'project-the-beatles.html' }
         ];
 
         // Create DOM nodes and initialize physics states
@@ -201,7 +201,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 isDragged: false,
                 lastX: x,
                 lastY: y,
-                dragPointerId: null
+                dragPointerId: null,
+                isTarget: def.isTarget || false,
+                url: def.url || null
             };
         });
 
@@ -246,6 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         sandbox.addEventListener('pointermove', (e) => {
+            let activeDraggedItem = null;
             items.forEach(item => {
                 if (item.isDragged && item.dragPointerId === e.pointerId) {
                     const sandboxRect = sandbox.getBoundingClientRect();
@@ -259,18 +262,83 @@ document.addEventListener("DOMContentLoaded", () => {
                     item.vy = item.y - item.lastY;
                     item.lastX = item.x;
                     item.lastY = item.y;
+
+                    activeDraggedItem = item;
                 }
             });
+
+            // Target hover feedback highlight
+            const targetItem = items.find(i => i.isTarget);
+            if (targetItem) {
+                const anyDrag = activeDraggedItem || items.find(i => i.isDragged);
+                let isHovering = false;
+                if (anyDrag) {
+                    if (anyDrag.isTarget) {
+                        isHovering = items.some(other => {
+                            if (!other.url) return false;
+                            const r1 = targetItem.el.getBoundingClientRect();
+                            const r2 = other.el.getBoundingClientRect();
+                            return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+                        });
+                    } else if (anyDrag.url) {
+                        const r1 = anyDrag.el.getBoundingClientRect();
+                        const r2 = targetItem.el.getBoundingClientRect();
+                        isHovering = !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+                    }
+                }
+                if (isHovering) {
+                    targetItem.el.classList.add('drag-hover');
+                } else {
+                    targetItem.el.classList.remove('drag-hover');
+                }
+            }
         });
 
         const endDrag = (e) => {
+            const targetItem = items.find(i => i.isTarget);
+            let triggeredUrl = null;
+
             items.forEach(item => {
                 if (item.isDragged && item.dragPointerId === e.pointerId) {
                     item.isDragged = false;
                     item.dragPointerId = null;
                     item.el.releasePointerCapture(e.pointerId);
+
+                    // Check for overlap navigation
+                    if (targetItem) {
+                        if (item.url) {
+                            const r1 = item.el.getBoundingClientRect();
+                            const r2 = targetItem.el.getBoundingClientRect();
+                            const overlap = !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+                            if (overlap) {
+                                triggeredUrl = item.url;
+                            }
+                        } else if (item.isTarget) {
+                            items.forEach(other => {
+                                if (other.url) {
+                                    const r1 = targetItem.el.getBoundingClientRect();
+                                    const r2 = other.el.getBoundingClientRect();
+                                    const overlap = !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+                                    if (overlap) {
+                                        triggeredUrl = other.url;
+                                    }
+                                }
+                            });
+                        }
+                    }
                 }
             });
+
+            if (triggeredUrl && targetItem) {
+                targetItem.el.classList.add('drag-success');
+                setTimeout(() => {
+                    window.location.href = triggeredUrl;
+                }, 200);
+            }
+
+            if (targetItem) {
+                targetItem.el.classList.remove('drag-hover');
+            }
         };
 
         sandbox.addEventListener('pointerup', endDrag);
@@ -284,9 +352,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const updatePhysics = () => {
             const containerWidth = sandbox.clientWidth;
             const containerHeight = sandbox.clientHeight;
+            const isAnyOtherDragged = items.some(i => i.isDragged && !i.isTarget);
 
             items.forEach((item, idx) => {
-                if (!item.isDragged) {
+                const itemImmovable = item.isDragged || (item.isTarget && isAnyOtherDragged);
+
+                if (!itemImmovable) {
                     item.x += item.vx;
                     item.y += item.vy;
 
@@ -315,6 +386,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         item.vx = (Math.random() - 0.5) * 0.5;
                         item.vy = (Math.random() - 0.5) * 0.5;
                     }
+                } else if (item.isTarget && isAnyOtherDragged) {
+                    // Lock velocity to 0 while frozen
+                    item.vx = 0;
+                    item.vy = 0;
                 }
 
                 // Item to item collisions (circle overlap check)
@@ -323,11 +398,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     const cx1 = item.x + item.width / 2;
                     const cy1 = item.y + item.height / 2;
-                    const r1 = Math.max(item.width, item.height) / 2;
+                    const r1 = (item.width + item.height) / 4;
 
                     const cx2 = other.x + other.width / 2;
                     const cy2 = other.y + other.height / 2;
-                    const r2 = Math.max(other.width, other.height) / 2;
+                    const r2 = (other.width + other.height) / 4;
 
                     const dx = cx2 - cx1;
                     const dy = cy2 - cy1;
@@ -339,11 +414,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         const nx = dx / distance;
                         const ny = dy / distance;
 
-                        if (!item.isDragged) {
+                        const itemImmovable = item.isDragged || (item.isTarget && isAnyOtherDragged);
+                        const otherImmovable = other.isDragged || (other.isTarget && isAnyOtherDragged);
+
+                        if (!itemImmovable) {
                             item.x -= nx * overlap * 0.5;
                             item.y -= ny * overlap * 0.5;
                         }
-                        if (!other.isDragged) {
+                        if (!otherImmovable) {
                             other.x += nx * overlap * 0.5;
                             other.y += ny * overlap * 0.5;
                         }
@@ -353,11 +431,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         const ky = item.vy - other.vy;
                         const p = 2 * (nx * kx + ny * ky) / 2;
 
-                        if (!item.isDragged) {
+                        if (!itemImmovable) {
                             item.vx -= p * nx * bounce;
                             item.vy -= p * ny * bounce;
                         }
-                        if (!other.isDragged) {
+                        if (!otherImmovable) {
                             other.vx += p * nx * bounce;
                             other.vy += p * ny * bounce;
                         }
