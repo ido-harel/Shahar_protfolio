@@ -1,26 +1,26 @@
 // Wait for DOM to load
 document.addEventListener("DOMContentLoaded", () => {
-    
+
     /* -------------------------------------------
        Header Scroll Effect
     ------------------------------------------- */
     const header = document.querySelector('.site-header');
     let lastScrollY = window.scrollY;
     const scrollDelta = 10;
-    
+
     const handleScroll = () => {
         const currentScrollY = window.scrollY;
-        
+
         // Toggle header scrolled styling
         if (currentScrollY > 50) {
             header.classList.add('scrolled');
         } else {
             header.classList.remove('scrolled');
         }
-        
+
         // Hide header on scroll down, show on scroll up
         const isMenuOpen = document.body.classList.contains('menu-open');
-        
+
         if (currentScrollY <= 150) {
             header.classList.remove('header-hidden');
             lastScrollY = currentScrollY;
@@ -35,14 +35,14 @@ document.addEventListener("DOMContentLoaded", () => {
             lastScrollY = currentScrollY;
         }
     };
-    
+
     // Initial check
     handleScroll();
-    
+
     // Check on scroll
     window.addEventListener('scroll', handleScroll);
 
-    
+
     /* -------------------------------------------
        Scroll Reveal Animations
     ------------------------------------------- */
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (entry.isIntersecting) {
                 // Add active class to fade/slide in
                 entry.target.classList.add('active');
-                
+
                 // Stop observing once revealed (so it stays visible)
                 observer.unobserve(entry.target);
             }
@@ -79,33 +79,33 @@ document.addEventListener("DOMContentLoaded", () => {
        Smooth Scrolling for Anchor Links
     ------------------------------------------- */
     const anchorLinks = document.querySelectorAll('a[href^="#"]');
-    
+
     anchorLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
-            
+
             const targetId = this.getAttribute('href');
-            
+
             // If it's just '#' then scroll to top
-            if(targetId === '#') {
+            if (targetId === '#') {
                 window.scrollTo({
                     top: 0,
                     behavior: 'smooth'
                 });
                 return;
             }
-            
+
             const targetElement = document.querySelector(targetId);
-            
+
             if (targetElement) {
                 // Get offset top considering fixed header
                 const headerHeight = header.offsetHeight;
                 const elementPosition = targetElement.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
-  
+
                 window.scrollTo({
-                     top: offsetPosition,
-                     behavior: "smooth"
+                    top: offsetPosition,
+                    behavior: "smooth"
                 });
             }
         });
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const width = el.offsetWidth;
             const height = el.offsetHeight;
-            
+
             // Safe boundaries to prevent negative values on initialization
             const maxX = Math.max(10, sandbox.clientWidth - width - 20);
             const maxY = Math.max(10, sandbox.clientHeight - height - 20);
@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const fixedY = Math.max(10, (sandbox.clientHeight - height) / 2);
             const x = def.isFixed ? fixedX : Math.random() * maxX + 10;
             const y = def.isFixed ? fixedY : Math.random() * maxY + 10;
-            
+
             return {
                 el,
                 x,
@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
             items.forEach(item => {
                 item.width = item.el.offsetWidth;
                 item.height = item.el.offsetHeight;
-                
+
                 const maxX = sandbox.clientWidth - item.width;
                 const maxY = sandbox.clientHeight - item.height;
                 if (item.isFixed) {
@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const rect = el.getBoundingClientRect();
             item.offsetX = e.clientX - rect.left;
             item.offsetY = e.clientY - rect.top;
-            
+
             item.vx = 0;
             item.vy = 0;
             item.lastX = item.x;
@@ -401,7 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 for (let j = idx + 1; j < items.length; j++) {
                     const other = items[j];
                     if (item.isFixed || other.isFixed) continue;
-                    
+
                     const cx1 = item.x + item.width / 2;
                     const cy1 = item.y + item.height / 2;
                     const r1 = (item.width + item.height) / 4;
